@@ -11,6 +11,8 @@ namespace Complete
         // add reference to instance of GameManager class
         public static GameManager Instance { get; private set; }
 
+        public Button restartButton;                // for restarting the game
+
         private void Awake()
         {
             Instance = this;
@@ -47,6 +49,13 @@ namespace Complete
 
         private void Start()
         {
+            // add listener for restart button
+            restartButton.onClick.AddListener(ResetGameLoop);
+
+            // hide the restart button
+            restartButton.gameObject.SetActive(false);
+
+
             // Initialize laps settings
             laps.currentLap = 1;
             laps.pass1 = false;
@@ -152,6 +161,9 @@ namespace Complete
 
             lapCounterText.text = "Lap: " + laps.currentLap + "/" + laps.nLapsTotal;
 
+            // hide the restart button
+            restartButton.gameObject.SetActive(false);
+
             // Start the game.
             StartCoroutine(GameLoop());
         }
@@ -226,6 +238,7 @@ namespace Complete
             afterMatchText.text = "Fastest Time: " + fastestTime.ToString("F2") + "\n" + "Total Time: " + laps.totalTime.ToString("F2");
 
             // Display restart button
+            restartButton.gameObject.SetActive(true);
 
 
 
