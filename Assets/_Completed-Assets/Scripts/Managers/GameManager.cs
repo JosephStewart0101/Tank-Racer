@@ -2,14 +2,36 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Linq;
 
 namespace Complete
 {
     public class GameManager : MonoBehaviour
     {
-        public int m_NumRoundsToWin = 5;            // The number of rounds a single player has to win to win the game.
-        public float m_StartDelay = 3f;             // The delay between the start of RoundStarting and RoundPlaying phases.
-        public float m_EndDelay = 3f;               // The delay between the end of RoundPlaying and RoundEnding phases.
+        // add reference to instance of GameManager class
+        public static GameManager Instance { get; private set; }
+
+        private void Awake()
+        {
+            Instance = this;
+        }
+
+        private float fastestTime = 0f;
+
+        public LapsAsset laps;
+
+        public int nTotalLaps;
+
+        private int countdownTime = 3;
+        public Text m_TimeText;
+
+        public Text lapCounterText;
+
+        public Text afterMatchText;                 // for displaying text after the match
+
+        private int m_NumRoundsToWin = 5;            // The number of rounds a single player has to win to win the game.
+        private float m_StartDelay = 1f;             // The delay between the start of RoundStarting and RoundPlaying phases.
+        private float m_EndDelay = 3f;               // The delay between the end of RoundPlaying and RoundEnding phases.
         public CameraControl m_CameraControl;       // Reference to the CameraControl script for control during different phases.
         public Text m_MessageText;                  // Reference to the overlay Text to display winning text, etc.
         public GameObject m_TankPrefab;             // Reference to the prefab the players will control.
@@ -25,6 +47,21 @@ namespace Complete
 
         private void Start()
         {
+            // Initialize laps settings
+            laps.currentLap = 1;
+            laps.pass1 = false;
+            laps.pass2 = false;
+            laps.isFinalLap = false;
+            laps.finalComplete = false;
+            laps.roundList.Clear();
+            laps.nLapsTotal = nTotalLaps;
+
+            afterMatchText.text = string.Empty;
+
+
+            lapCounterText.text = "Lap: " + laps.currentLap + "/" + laps.nLapsTotal;
+
+
             // Create the delays so they only have to be made once.
             m_StartWait = new WaitForSeconds (m_StartDelay);
             m_EndWait = new WaitForSeconds (m_EndDelay);
@@ -80,6 +117,9 @@ namespace Complete
             // Once execution has returned here, run the 'RoundEnding' coroutine, again don't return until it's finished.
             yield return StartCoroutine (RoundEnding());
 
+
+
+            /*
             // This code is not run until 'RoundEnding' has finished.  At which point, check if a game winner has been found.
             if (m_GameWinner != null)
             {
@@ -92,6 +132,28 @@ namespace Complete
                 // Note that this coroutine doesn't yield.  This means that the current version of the GameLoop will end.
                 StartCoroutine (GameLoop ());
             }
+            */
+        }
+
+        public void ResetGameLoop()
+        {
+            // Initialize laps settings
+            laps.currentLap = 1;
+            laps.pass1 = false;
+            laps.pass2 = false;
+            laps.isFinalLap = false;
+            laps.finalComplete = false;
+            laps.roundList.Clear();
+            laps.nLapsTotal = nTotalLaps;
+
+            // Reset the after-match scores
+            afterMatchText.text = string.Empty;
+
+
+            lapCounterText.text = "Lap: " + laps.currentLap + "/" + laps.nLapsTotal;
+
+            // Start the game.
+            StartCoroutine(GameLoop());
         }
 
 
@@ -101,12 +163,28 @@ namespace Complete
             ResetAllTanks ();
             DisableTankControl ();
 
+
             // Snap the camera's zoom and position to something appropriate for the reset tanks.
             m_CameraControl.SetStartPositionAndSize ();
 
             // Increment the round number and display text showing the players what round it is.
             m_RoundNumber++;
-            m_MessageText.text = "ROUND " + m_RoundNumber;
+            //m_MessageText.text = "ROUND " + m_RoundNumber;
+
+
+
+            yield return new WaitForSeconds(1F);
+
+            while (countdownTime > 0)
+            {
+                m_MessageText.text = countdownTime.ToString();
+
+                yield return new WaitForSeconds(1F);
+
+                countdownTime--;
+            }
+
+            m_MessageText.text = "GO!";
 
             // Wait for the specified length of time until yielding control back to the game loop.
             yield return m_StartWait;
@@ -118,11 +196,14 @@ namespace Complete
             // As soon as the round begins playing let the players control the tanks.
             EnableTankControl ();
 
+            // Let the timer know the user is playing.
+            laps.isPlaying = true;
+
             // Clear the text from the screen.
             m_MessageText.text = string.Empty;
 
             // While there is not one tank left...
-            while (!OneTankLeft())
+            while (!nLapsCompleted())
             {
                 // ... return on the next frame.
                 yield return null;
@@ -132,25 +213,39 @@ namespace Complete
 
         private IEnumerator RoundEnding ()
         {
+            // Freeze timers
+            laps.isPlaying = false;
+
             // Stop tanks from moving.
             DisableTankControl ();
 
+            // calculate the user's fastest time
+            fastestTime = laps.roundList.Max();
+
+            // Display times
+            afterMatchText.text = "Fastest Time: " + fastestTime.ToString("F2") + "\n" + "Total Time: " + laps.totalTime.ToString("F2");
+
+            // Display restart button
+
+
+
+
             // Clear the winner from the previous round.
-            m_RoundWinner = null;
+            // m_RoundWinner = null;
 
             // See if there is a winner now the round is over.
-            m_RoundWinner = GetRoundWinner ();
+            // m_RoundWinner = GetRoundWinner ();
 
             // If there is a winner, increment their score.
-            if (m_RoundWinner != null)
-                m_RoundWinner.m_Wins++;
+            //if (m_RoundWinner != null)
+            //    m_RoundWinner.m_Wins++;
 
             // Now the winner's score has been incremented, see if someone has one the game.
-            m_GameWinner = GetGameWinner ();
+            // m_GameWinner = GetGameWinner ();
 
             // Get a message based on the scores and whether or not there is a game winner and display it.
-            string message = EndMessage ();
-            m_MessageText.text = message;
+            // string message = EndMessage ();
+            // m_MessageText.text = message;
 
             // Wait for the specified length of time until yielding control back to the game loop.
             yield return m_EndWait;
@@ -158,7 +253,7 @@ namespace Complete
 
 
         // This is used to check if there is one or fewer tanks remaining and thus the round should end.
-        private bool OneTankLeft()
+        /*private bool OneTankLeft()
         {
             // Start the count of tanks left at zero.
             int numTanksLeft = 0;
@@ -173,6 +268,17 @@ namespace Complete
 
             // If there are one or fewer tanks remaining return true, otherwise return false.
             return numTanksLeft <= 1;
+        }
+        */
+
+        // This is used to check if the user has reached n laps
+        private bool nLapsCompleted()
+        {
+            // check if is the last lap
+
+
+
+            return laps.finalComplete;
         }
         
         

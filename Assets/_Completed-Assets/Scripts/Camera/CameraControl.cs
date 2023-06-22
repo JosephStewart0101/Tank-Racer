@@ -63,6 +63,8 @@ namespace Complete
             if (numTargets > 0)
                 averagePos /= numTargets;
 
+            //averagePos += m_Targets[1].position;
+
             // Keep the same y value.
             averagePos.y = transform.position.y;
 
