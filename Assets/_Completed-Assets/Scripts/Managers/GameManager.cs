@@ -13,6 +13,8 @@ namespace Complete
 
         public Button restartButton;                // for restarting the game
 
+        public BoostVariables boost;                // container for boost variables
+
         private void Awake()
         {
             Instance = this;
@@ -23,6 +25,9 @@ namespace Complete
         public LapsAsset laps;
 
         public int nTotalLaps;
+
+        public float playerSpeed = 6f;
+        public float boostSpeed = 9f;
 
         private int countdownTime = 3;
         public Text m_TimeText;
@@ -49,7 +54,8 @@ namespace Complete
 
         private void Start()
         {
-            
+            boost.speed = playerSpeed;
+            boost.boostSpeed = boostSpeed;
 
             // add listener for restart button
             restartButton.onClick.AddListener(ResetGameLoop);

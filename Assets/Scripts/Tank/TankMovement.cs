@@ -2,6 +2,8 @@
 
 public class TankMovement : MonoBehaviour
 {
+    public BoostVariables boost;                // container for boost variables
+
     public int m_PlayerNumber = 1;         
     public float m_Speed = 12f;            
     public float m_TurnSpeed = 180f;       

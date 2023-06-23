@@ -4,6 +4,8 @@ namespace Complete
 {
     public class TankMovement : MonoBehaviour
     {
+        public BoostVariables boost;                // container for boost variables
+
         public int m_PlayerNumber = 1;              // Used to identify which tank belongs to which player.  This is set by this tank's manager.
         public float m_Speed = 7f;                 // How fast the tank moves forward and back.
         public float m_TurnSpeed = 85f;            // How fast the tank turns in degrees per second.
@@ -72,6 +74,8 @@ namespace Complete
 
         private void Update ()
         {
+            m_Speed = boost.speedCurrent;
+
             // Store the value of both input axes.
             m_MovementInputValue = Input.GetAxis (m_MovementAxisName);
             m_TurnInputValue = Input.GetAxis (m_TurnAxisName);
