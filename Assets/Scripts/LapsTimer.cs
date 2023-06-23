@@ -14,9 +14,7 @@ public class LapsTimer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        laps.roundTime = 0f;
-        laps.totalTime = 0f;
-        laps.isPlaying = false;
+        
     }
 
     // Update is called once per frame

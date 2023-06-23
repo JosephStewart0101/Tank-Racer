@@ -49,6 +49,8 @@ namespace Complete
 
         private void Start()
         {
+            
+
             // add listener for restart button
             restartButton.onClick.AddListener(ResetGameLoop);
 
@@ -65,6 +67,10 @@ namespace Complete
             laps.roundList.Clear();
             laps.nLapsTotal = nTotalLaps;
 
+            laps.roundTime = 0f;
+            laps.totalTime = 0f;
+            laps.isPlaying = false;
+
             afterMatchText.text = string.Empty;
 
 
@@ -77,6 +83,10 @@ namespace Complete
 
             SpawnAllTanks();
             SetCameraTargets();
+
+
+            
+
 
             // Once the tanks have been created and the camera is using them as targets, start the game.
             StartCoroutine (GameLoop ());
@@ -155,6 +165,12 @@ namespace Complete
             laps.roundList.Clear();
             laps.nLapsTotal = nTotalLaps;
 
+            laps.totalTime = 0f;
+            // laps.isPlaying = false; // irrelevant - I think
+
+            // Reset the countdown timer for next race
+            countdownTime = 3;
+
             // Reset the after-match scores
             afterMatchText.text = string.Empty;
 
@@ -175,6 +191,13 @@ namespace Complete
             ResetAllTanks ();
             DisableTankControl ();
 
+
+            // add check for if nTotalLaps is 1, therefore is final lap
+            if (nTotalLaps == 1)
+            {
+                Debug.Log("isFinal true");
+                laps.isFinalLap = true;
+            }
 
             // Snap the camera's zoom and position to something appropriate for the reset tanks.
             m_CameraControl.SetStartPositionAndSize ();
